@@ -7,6 +7,7 @@ const volunteersRouter = express.Router();
 volunteersRouter
   // .get('/sendOTP/:phoneNumber',login.sendsms)
   // .get('/verifyOTP/:phoneNumber/:otp',login.verifyOTP)
+  .post('/updateInfo/:phoneNumber',volunteersRouter.UpdateInfo)
 
 //   .get('/getFiles',media.listOfvideo)
   // .post('/upload_profile/:phone_number',media.profil÷e_upload)

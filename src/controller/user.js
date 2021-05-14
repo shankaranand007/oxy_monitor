@@ -98,7 +98,7 @@ class LoginController {
           loginModel.findOneAndUpdate({ phoneNumber: { $regex: req.params.phoneNumber, $options: "i" } }, { $set: { 'otp_verify': false, 'phoneNumber': req.params.phoneNumber, 'otp': otp } },{upsert:true})
             .exec((err, data) => {
               if (err) output.serverError(req, res, err);
-              else output.ok(req, res, data, "saved", 1)
+              else output.ok(req, res, otp, "saved", 1)
             })
           // callback(null,response)
         });
