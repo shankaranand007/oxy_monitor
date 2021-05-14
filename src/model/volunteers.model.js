@@ -5,20 +5,18 @@ const config = require('../../config.json');
 
 mongoose.connect(`${config.mongo_client}/oxy_monitoring`);
 
-let volunteer = new Schema({
+let volunteers = new Schema({
     phoneNumber:{type:String,required:true},
     alt_phoneNumber:{type:String},
-    status:{type:Boolean,default:true},
-    Name:String,
-    Gender:String,
-    Address1:String,
-    Address2:String,
-    Address1:String,
-    state:{type:String,required:true},
-    pincode:{type:String,required:true},
+    status:{type:Boolean,default:false},
+    name:String,
+    address1:String,
+    address2:String,
+    state:String,
+    district:String,
     create_time:{type:Date,default:Date.now}
 },{strict:false});
 
 
 // Export the model
-module.exports = mongoose.model('volunteer', volunteer);
+module.exports = mongoose.model('volunteer', volunteers);

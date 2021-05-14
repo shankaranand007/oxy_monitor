@@ -5,18 +5,24 @@ const config = require('../../config.json');
 
 mongoose.connect(`${config.mongo_client}/oxy_monitoring`);
 
-let volunteers = new Schema({
+let login = new Schema({
     phoneNumber:{type:String,required:true},
-    alt_phoneNumber:{type:String},
-    status:{type:Boolean,default:false},
-    name:String,
-    address1:String,
-    address2:String,
-    state:String,
-    district:String,
+    otp_verify:{type:Boolean,default:false},
+    Patient_Name:String,
+    Gender:String,
+    Age:String,
+    SPO2:String,
+    Comorbidities:[],
+    Symptoms:[],
+    CovidSince:String,
+    Address:String,
+    Landmark:String,
+    Aadhaar:String,
+    otp:{type:Number},
+    count:{type:Number,default:0},
     create_time:{type:Date,default:Date.now}
 },{strict:false});
 
 
 // Export the model
-module.exports = mongoose.model('volunteer', volunteers);
+module.exports = mongoose.model('login', login);
