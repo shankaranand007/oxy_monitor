@@ -8,6 +8,8 @@ var async = require('async');
 const output = require('../helper/api');
 // const Uploader = require('../helper/uploder');
 const volunteersModel = require('../model/volunteers.model');
+const stockModel = require('../model/availabilities.model');
+
 
 
 const util = require("util");
@@ -103,42 +105,59 @@ class TicketController {
     //       // callback(null,response)
     //     });
     //   }
-
-    //   verifyOTP(req,res){
-    //     try {
-    //         console.log( req.params.phoneNumber,"sljjfksjdbfjk")
-    //             // let search_key = req.params.search + '%';
-    //             loginModel.findOneAndUpdate({ $and:[{phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{otp:req.params.otp}]},{$set:{'otp_verify': true}})
-    //             .exec((err, data) => {
-    //                 console.log(err,data)
-    //               if (err) output.serverError(req, res, err);
-    //               else {
-    //                   if(data){
-    //                   output.ok(req, res, {status:true}, "saved", 1)
-    //                   }else{
-    //                   output.ok(req, res, {status:false}, "saved", 0)
-    //                   }
-    //                 }
-    //             })
-    //     } catch (ex) { output.serverError(req, res, ex) }
-    // }
-    UpdateInfo(req,res){
+    addStock(req,res){
         try {
+            // console.log( req.params.phoneNumber,"sljjfksjdbfjk")
                 // let search_key = req.params.search + '%';
-                volunteers.findOneAndUpdate({phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{$set:req.body},{upsert:true})
+                loginModel.findOneAndUpdate({ },{$set:{'otp_verify': true}})
                 .exec((err, data) => {
                     console.log(err,data)
                   if (err) output.serverError(req, res, err);
                   else {
                       if(data){
-                      output.ok(req, res, data, "saved", 1)
+                      output.ok(req, res, {status:true}, "saved", 1)
                       }else{
-                      output.ok(req, res, {status:false}, "Not able to find your id please regeister you phone number", 0)
+                      output.ok(req, res, {status:false}, "saved", 0)
                       }
                     }
                 })
         } catch (ex) { output.serverError(req, res, ex) }
     }
+      newReq(req,res){
+        try {
+            // console.log( req.params.phoneNumber,"sljjfksjdbfjk")
+                // let search_key = req.params.search + '%';
+                loginModel.findOneAndUpdate({ $and:[{phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{otp:req.params.otp}]},{$set:{'otp_verify': true}})
+                .exec((err, data) => {
+                    console.log(err,data)
+                  if (err) output.serverError(req, res, err);
+                  else {
+                      if(data){
+                      output.ok(req, res, {status:true}, "saved", 1)
+                      }else{
+                      output.ok(req, res, {status:false}, "saved", 0)
+                      }
+                    }
+                })
+        } catch (ex) { output.serverError(req, res, ex) }
+    }
+    // UpdateInfo(req,res){
+    //     try {
+    //             // let search_key = req.params.search + '%';
+    //             volunteers.findOneAndUpdate({phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{$set:req.body},{upsert:true})
+    //             .exec((err, data) => {
+    //                 console.log(err,data)
+    //               if (err) output.serverError(req, res, err);
+    //               else {
+    //                   if(data){
+    //                   output.ok(req, res, data, "saved", 1)
+    //                   }else{
+    //                   output.ok(req, res, {status:false}, "Not able to find your id please regeister you phone number", 0)
+    //                   }
+    //                 }
+    //             })
+    //     } catch (ex) { output.serverError(req, res, ex) }
+    // }
     
     
 }

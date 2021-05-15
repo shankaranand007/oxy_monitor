@@ -5,9 +5,7 @@ const login = require('../controller/user');
 const loginRouter = express.Router();
 
 loginRouter
-  .get('/sendOTP/:phoneNumber',login.sendsms)
-  .get('/verifyOTP/:phoneNumber/:otp',login.verifyOTP)
-  .post('/updateInfo/:phoneNumber',login.UpdateInfo)
+  .get('/create/:phoneNumber',login.sendsms)
 
 
 //   .get('/getFiles',media.listOfvideo)

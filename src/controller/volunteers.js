@@ -125,7 +125,7 @@ class VolunteersController {
     UpdateInfo(req,res){
         try {
                 // let search_key = req.params.search + '%';
-                volunteers.findOneAndUpdate({phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{$set:req.body},{upsert:true})
+                volunteersModel.findOneAndUpdate({phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{$set:req.body},{upsert:true})
                 .exec((err, data) => {
                     console.log(err,data)
                   if (err) output.serverError(req, res, err);
