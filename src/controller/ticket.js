@@ -109,7 +109,17 @@ class TicketController {
     //       // callback(null,response)
     //     });
     //   }
+    getAvailabilities(req, res){
+        stockModel.findOne({})
+        .exec((err, data) => {
+            if (err) output.serverError(req, res, err);
+            else {
+                output.ok(req, res, data, "data", 1)
 
+            }
+        })
+    }
+    
     addStock(req, res) {
         try {
             if (Object.keys(req.body).length) {

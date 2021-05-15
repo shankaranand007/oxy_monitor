@@ -9,6 +9,8 @@ loginRouter
   .post('/addStock',ticketController.addStock)
   .get('/',ticketController.listOfReq)
   .post('/approve',ticketController.approveReq)
+  .get('/available',ticketController.getAvailabilities)
+
 
 
 
