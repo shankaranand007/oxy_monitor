@@ -5,7 +5,7 @@ const ticketController = require('../controller/ticket');
 const loginRouter = express.Router();
 
 loginRouter
-  .get('/create/:phoneNumber',ticketController.newReq)
+  .post('/create/:phoneNumber',ticketController.newReq)
   .post('/addStock',ticketController.addStock)
   .get('/',ticketController.listOfReq)
   .post('/approve',ticketController.approveReq)

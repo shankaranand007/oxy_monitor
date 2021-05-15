@@ -124,7 +124,7 @@ class TicketController {
                             }
                         }
                     })
-            }else{
+            } else {
                 throw "Invalid Message"
             }
         } catch (ex) { output.serverError(req, res, ex) }
@@ -133,15 +133,23 @@ class TicketController {
         try {
             // console.log( req.params.phoneNumber,"sljjfksjdbfjk")
             // let search_key = req.params.search + '%';
-            loginModel.findOneAndUpdate({ $and: [{ phoneNumber: { $regex: req.params.phoneNumber, $options: "i" } }, { otp: req.params.otp }] }, { $set: { 'otp_verify': true } })
+            userModel.findOne({ $and:[{phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{otp_verify:true}]})
                 .exec((err, data) => {
                     console.log(err, data)
                     if (err) output.serverError(req, res, err);
                     else {
                         if (data) {
-                            output.ok(req, res, { status: true }, "saved", 1)
+                            let newReq = new requestModel(req.body)
+                            newReq.save((err,data)=>{
+                                if (err) output.serverError(req, res, err);
+                                else {
+                                    // if (data) {
+                                        output.ok(req, res, data, "saved", 1)
+                                    // } 
+                                }
+                            })
                         } else {
-                            output.ok(req, res, { status: false }, "saved", 0)
+                            output.ok(req, res, { status: false }, "No record found", 0)
                         }
                     }
                 })
@@ -157,7 +165,7 @@ class TicketController {
                     if (err) output.serverError(req, res, err);
                     else {
                         if (data) {
-                            output.ok(req, res, { status: true }, "saved", 1)
+                            output.ok(req, res, data, "saved", 1)
                         } else {
                             output.ok(req, res, { status: false }, "saved", 0)
                         }
@@ -165,56 +173,61 @@ class TicketController {
                 })
         } catch (ex) { output.serverError(req, res, ex) }
     }
-    async approveReq(req,res){
+
+    
+    async approveReq(req, res) {
+        try {
+
         let stock = await availabilitiesModel.findOne()
 
+        if (stock.available_oxygen_cylinder > 0) {
+            async.parallel({
+                updateStock: async (callback) => {
+                    stock.available_oxygen_cylinder = stock.available_oxygen_cylinder - req.body.Number_of_cylinder;
+                    stock.available_oxy_meters = (stock.available_oxy_meters > 0) ? stock.available_oxy_meters - req.body.Number_of_monitorKid : 0;
+                    stock.save()
+                    callback(null, stock)
+                },
+                reqUpdate: async (callback) => {
+                    requestModel.findByIdAndUpdate({ _id: req.body._id }, { $set: { "status": "delivered" } })
+                        .exec((err, data) => {
+                            if (err) callback(err, [])
+                            else {
+                                callback(null, stock)
+                            }
+                        })
 
-        res.send(stock)
-        if(stock.available_oxygen_cylinder > 0){
-        async.parallel({
-            updateStock: async (callback) => {
-                stock.available_oxygen_cylinder =  stock.available_oxygen_cylinder - req.body.available_oxygen_cylinder;
-                stock.available_oxy_meters = (stock.available_oxy_meters > 0)? stock.available_oxy_meters - req.body.available_oxy_meters :0;
-                stock.save()
-                callback(null,stock)
+                },
+                updateUser: async (callback) => {
+                    // send msg to user
+                    callback(null, stock)
+                },
+                updateVolunteer: (callback) => {
+                    userModel.findOne({ phoneNumber: req.body.phoneNumber })
+                        .exec((err, user) => {
+                            if (err) callback(err, [])
+                            else {
+                                volunteersModel.find({}, { phoneNumber: 1, _id: -1 })
+                                    .exec((err, data) => {
+                                        callback(null, stock)
+                                        // send msg
+                                    })
+                            }
+                        })
+                },
             },
-            reqUpdate: async (callback) => {
-                requestModel.findByIdAndUpdate({_id:req.body_id},{$set:{"status":"delivered"}})
-                .exec((err, data) => {
-                    if (err) callback(err,[])
-                    else {
-                        callback(null,stock)
-                    }
-                })
-
-            },     
-            updateStock: async (callback) => {
-                stock.available_oxygen_cylinder =  stock.available_oxygen_cylinder- 40;
-                stock.available_oxy_meters = (stock.available_oxy_meters > 0)? stock.available_oxy_meters - 1 :0;
-                stock.save()
-                callback(null,stock)
-            },
-            updateVolunteer: (callback) => {
-               userModel.findOne({phoneNumber:req.body.phoneNumber})
-               .exec((err, data) => {
-                if (err) callback(err,[])
-                else {
-                    callback(null,stock)
+                (err, result) => {
+                    if (err) output.invalid(req, res, err)
+                    // let result = []
+                    output.ok(req, res, result, "catagory list", 0)
                 }
-            })
-            },
-        
-        },
-            (err, result) => {
-                if (err) output.invalid(req, res, err)
-                // let result = []
-                output.ok(req, res, result, "catagory list", 0)
-            }
-        )
-    }else{
-        output.ok(req, res, { status: false }, "No stock", 0)
+            )
+        } else {
+            throw "NO stock"
+        }
+    } catch (ex) { output.serverError(req, res, ex) }
+
     }
-}
-   
+
 }
 module.exports = new TicketController();
