@@ -109,6 +109,7 @@ class TicketController {
     //       // callback(null,response)
     //     });
     //   }
+
     addStock(req, res) {
         try {
             if (Object.keys(req.body).length) {
@@ -129,6 +130,7 @@ class TicketController {
             }
         } catch (ex) { output.serverError(req, res, ex) }
     }
+
     newReq(req, res) {
         try {
             // console.log( req.params.phoneNumber,"sljjfksjdbfjk")
@@ -179,7 +181,7 @@ class TicketController {
         try {
 
         let stock = await availabilitiesModel.findOne()
-
+            // res.send(stock)
         if (stock.available_oxygen_cylinder > 0) {
             async.parallel({
                 updateStock: async (callback) => {
@@ -189,13 +191,10 @@ class TicketController {
                     callback(null, stock)
                 },
                 reqUpdate: async (callback) => {
-                    requestModel.findByIdAndUpdate({ _id: req.body._id }, { $set: { "status": "delivered" } })
-                        .exec((err, data) => {
-                            if (err) callback(err, [])
-                            else {
-                                callback(null, stock)
-                            }
-                        })
+                    let data = await requestModel.findByIdAndUpdate({ _id: req.body._id }, { $set: { "status": "delivered" } })
+      
+                        callback(null, data)
+
 
                 },
                 updateUser: async (callback) => {
@@ -203,21 +202,23 @@ class TicketController {
                     callback(null, stock)
                 },
                 updateVolunteer: (callback) => {
-                    userModel.findOne({ phoneNumber: req.body.phoneNumber })
-                        .exec((err, user) => {
-                            if (err) callback(err, [])
-                            else {
-                                volunteersModel.find({}, { phoneNumber: 1, _id: -1 })
-                                    .exec((err, data) => {
-                                        callback(null, stock)
-                                        // send msg
-                                    })
-                            }
-                        })
+                    // userModel.findOne({ phoneNumber: req.body.phoneNumber })
+                    //     .exec((err, user) => {
+                    //         if (err) callback(err, [])
+                    //         else {
+                    //             volunteersModel.find({}, { phoneNumber: 1, _id: -1 })
+                    //                 .exec((err, data) => {
+                    //                     callback(null, stock)
+                    //                     // send msg
+                    //                 })
+                    //         }
+                        // })
+                    callback(null, stock)
+
                 },
             },
                 (err, result) => {
-                    if (err) output.invalid(req, res, err)
+                    // if (err) output.invalid(req, res, err)
                     // let result = []
                     output.ok(req, res, result, "catagory list", 0)
                 }
@@ -226,7 +227,6 @@ class TicketController {
             throw "NO stock"
         }
     } catch (ex) { output.serverError(req, res, ex) }
-
     }
 
 }
