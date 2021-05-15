@@ -162,7 +162,17 @@ class TicketController {
         try {
             // console.log( req.params.phoneNumber,"sljjfksjdbfjk")
             // let search_key = req.params.search + '%';
-            requestModel.find({})
+            requestModel.aggregate([
+                {
+                  $lookup:
+                    {
+                      from: "logins",
+                      localField: "phoneNumber",
+                      foreignField: "phoneNumber",
+                      as: "user_details"
+                    }
+               }
+             ])
                 .exec((err, data) => {
                     if (err) output.serverError(req, res, err);
                     else {
