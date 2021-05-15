@@ -86,7 +86,9 @@ class LoginController {
         var route = 'Transactional';
         let current_time = new Date();
         // let exp_time = moment(current_time).add(30, 'minutes')
-        const otp = Math.floor(1000 + Math.random() * 9000)
+        // const otp = Math.floor(1000 + Math.random() * 9000)
+        const otp = 1234
+
         let message = "Hello, Your Verification Code is " + otp;
         var num = '91' + req.params.phoneNumber;
         let number = num.toString();
@@ -105,7 +107,7 @@ class LoginController {
 
       verifyOTP(req,res){
         try {
-            console.log( req.params.phoneNumber,"sljjfksjdbfjk")
+            // console.log( req.params.phoneNumber,"sljjfksjdbfjk")
                 // let search_key = req.params.search + '%';
                 loginModel.findOneAndUpdate({ $and:[{phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{otp:req.params.otp}]},{$set:{'otp_verify': true}})
                 .exec((err, data) => {

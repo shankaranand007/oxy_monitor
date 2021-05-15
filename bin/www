@@ -20,12 +20,24 @@ app.set('port', port);
  */
 
 var server = http.createServer(app);
+// const io = require('socket.io')(server);
 
+var socketio = require('../src/helper/socketio');
+var io = socketio.io;
+io.attach(server);
+// io.on('connection', client => {
+//   // console.log(client)
+//   client.on('event', data => {console.log(data,"sokerererer")});
+//   client.on('disconnect', () => { /* … */ });
+// });
 /**
  * Listen on provided port, on all network interfaces.
  */
 
 server.listen(port);
+// app.set('socketIo', io);
+// io.on('event',data=>{console.log("adhsgasdjas")})
+
 server.on('error', onError);
 server.on('listening', onListening);
 
