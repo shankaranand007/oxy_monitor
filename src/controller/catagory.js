@@ -108,7 +108,6 @@ class CatagoryController {
 
     get_sub_catagory(req, res) {
         
-
         new Promise((resolve, reject) => {
             db.query(select.get_sub_catagory, (err, result2) => {
                 resolve(output.ok(req, res, result2, "sub catagory", 0))

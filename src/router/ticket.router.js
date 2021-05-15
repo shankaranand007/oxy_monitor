@@ -10,6 +10,8 @@ loginRouter
   .get('/',ticketController.listOfReq)
   .post('/approve',ticketController.approveReq)
   .get('/available',ticketController.getAvailabilities)
+  .get('/getDashboard',ticketController.getDashboard)
+
 
 
 

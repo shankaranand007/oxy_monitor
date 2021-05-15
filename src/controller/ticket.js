@@ -11,6 +11,7 @@ const requestModel = require('../model/request.model');
 const stockModel = require('../model/availabilities.model');
 const userModel = require('../model/login.model');
 const volunteersModel = require('../model/volunteers.model');
+const moment = require('moment');
 
 
 
@@ -109,17 +110,81 @@ class TicketController {
     //       // callback(null,response)
     //     });
     //   }
-    getAvailabilities(req, res){
-        stockModel.findOne({})
-        .exec((err, data) => {
-            if (err) output.serverError(req, res, err);
-            else {
-                output.ok(req, res, data, "data", 1)
 
-            }
-        })
+    async getDashboard(req, res) {
+
+
+        async.parallel({
+            todayCount: function (callback) {
+                let convert_date_start = moment.utc().format('YYYY-MM-DD 00:00:00');
+                let convert_date_end = moment.utc().format('YYYY-MM-DD 23:59:59');
+                requestModel.find(
+                    {$and:[
+                      {  create_time: {
+                            // $gte: convert_date_start,
+                            $lte: convert_date_end
+                        }},{
+                            "status" : "delivered"
+                        }
+                    ]
+                    }
+                )
+                    .count()
+                    .exec((err, data) => {
+                        callback(null, data)
+                    })
+            },
+            totalCount: function (callback) {
+                requestModel.find({status:"delivered"})
+                .count()
+                .exec((err,data)=>{
+                    if(err)callback(err,data)
+                     callback(null, data)
+                })
+            },
+            totalReturn: function (callback) {
+                requestModel.find({status:"return"})
+                .count()
+                .exec((err,data)=>{
+                    if(err)callback(err,data)
+                     callback(null, data)
+                })
+            },
+            todayReturn: function (callback) {
+                let convert_date_start = moment.utc().format('YYYY-MM-DD 00:00:00');
+                let convert_date_end = moment.utc().format('YYYY-MM-DD 23:59:59');
+                requestModel.find(
+                    {$and:[
+                      {  create_time: {
+                            // $gte: convert_date_start,
+                            $lte: convert_date_end
+                        }},{
+                            "status" : "return"
+                        }
+                    ]
+                    }
+                )
+                    .count()
+                    .exec((err, data) => {
+                        callback(null, data)
+                    })
+            },
+        }, function (err, results) {
+            if (err) { output.serverError(req, res, err) } else { output.ok(req, res, results, "saved", 1) }
+        });
+
     }
-    
+    getAvailabilities(req, res) {
+        stockModel.findOne({})
+            .exec((err, data) => {
+                if (err) output.serverError(req, res, err);
+                else {
+                    output.ok(req, res, data, "data", 1)
+
+                }
+            })
+    }
+
     addStock(req, res) {
         try {
             if (Object.keys(req.body).length) {
@@ -145,18 +210,18 @@ class TicketController {
         try {
             // console.log( req.params.phoneNumber,"sljjfksjdbfjk")
             // let search_key = req.params.search + '%';
-            userModel.findOne({ $and:[{phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{otp_verify:true}]})
+            userModel.findOne({ $and: [{ phoneNumber: { $regex: req.params.phoneNumber, $options: "i" } }, { otp_verify: true }] })
                 .exec((err, data) => {
                     console.log(err, data)
                     if (err) output.serverError(req, res, err);
                     else {
                         if (data) {
                             let newReq = new requestModel(req.body)
-                            newReq.save((err,data)=>{
+                            newReq.save((err, data) => {
                                 if (err) output.serverError(req, res, err);
                                 else {
                                     // if (data) {
-                                        output.ok(req, res, data, "saved", 1)
+                                    output.ok(req, res, data, "saved", 1)
                                     // } 
                                 }
                             })
@@ -174,15 +239,17 @@ class TicketController {
             // let search_key = req.params.search + '%';
             requestModel.aggregate([
                 {
-                  $lookup:
+                    $lookup:
                     {
-                      from: "logins",
-                      localField: "phoneNumber",
-                      foreignField: "phoneNumber",
-                      as: "user_details"
+                        from: "logins",
+                        localField: "phoneNumber",
+                        foreignField: "phoneNumber",
+                        as: "user_details"
                     }
-               }
-             ])
+                },
+                { $unwind: "$user_details" }
+
+            ])
                 .exec((err, data) => {
                     if (err) output.serverError(req, res, err);
                     else {
@@ -196,57 +263,57 @@ class TicketController {
         } catch (ex) { output.serverError(req, res, ex) }
     }
 
-    
+
     async approveReq(req, res) {
         try {
 
-        let stock = await availabilitiesModel.findOne()
+            let stock = await availabilitiesModel.findOne()
             // res.send(stock)
-        if (stock.available_oxygen_cylinder > 0) {
-            async.parallel({
-                updateStock: async (callback) => {
-                    stock.available_oxygen_cylinder = stock.available_oxygen_cylinder - req.body.Number_of_cylinder;
-                    stock.available_oxy_meters = (stock.available_oxy_meters > 0) ? stock.available_oxy_meters - req.body.Number_of_monitorKid : 0;
-                    stock.save()
-                    callback(null, stock)
-                },
-                reqUpdate: async (callback) => {
-                    let data = await requestModel.findByIdAndUpdate({ _id: req.body._id }, { $set: { "status": "delivered" } })
-      
+            if (stock.available_oxygen_cylinder > 0) {
+                async.parallel({
+                    updateStock: async (callback) => {
+                        stock.available_oxygen_cylinder = stock.available_oxygen_cylinder - req.body.Number_of_cylinder;
+                        stock.available_oxy_meters = (stock.available_oxy_meters > 0) ? stock.available_oxy_meters - req.body.Number_of_monitorKid : 0;
+                        stock.save()
+                        callback(null, stock)
+                    },
+                    reqUpdate: async (callback) => {
+                        let data = await requestModel.findByIdAndUpdate({ _id: req.body._id }, { $set: { "status": "delivered" } })
+
                         callback(null, data)
 
 
-                },
-                updateUser: async (callback) => {
-                    // send msg to user
-                    callback(null, stock)
-                },
-                updateVolunteer: (callback) => {
-                    // userModel.findOne({ phoneNumber: req.body.phoneNumber })
-                    //     .exec((err, user) => {
-                    //         if (err) callback(err, [])
-                    //         else {
-                    //             volunteersModel.find({}, { phoneNumber: 1, _id: -1 })
-                    //                 .exec((err, data) => {
-                    //                     callback(null, stock)
-                    //                     // send msg
-                    //                 })
-                    //         }
+                    },
+                    updateUser: async (callback) => {
+                        // send msg to user
+                        callback(null, stock)
+                    },
+                    updateVolunteer: (callback) => {
+                        // userModel.findOne({ phoneNumber: req.body.phoneNumber })
+                        //     .exec((err, user) => {
+                        //         if (err) callback(err, [])
+                        //         else {
+                        //             volunteersModel.find({}, { phoneNumber: 1, _id: -1 })
+                        //                 .exec((err, data) => {
+                        //                     callback(null, stock)
+                        //                     // send msg
+                        //                 })
+                        //         }
                         // })
-                    callback(null, stock)
+                        callback(null, stock)
 
+                    },
                 },
-            },
-                (err, result) => {
-                    // if (err) output.invalid(req, res, err)
-                    // let result = []
-                    output.ok(req, res, result, "catagory list", 0)
-                }
-            )
-        } else {
-            throw "NO stock"
-        }
-    } catch (ex) { output.serverError(req, res, ex) }
+                    (err, result) => {
+                        // if (err) output.invalid(req, res, err)
+                        // let result = []
+                        output.ok(req, res, result, "catagory list", 0)
+                    }
+                )
+            } else {
+                throw "NO stock"
+            }
+        } catch (ex) { output.serverError(req, res, ex) }
     }
 
 }
