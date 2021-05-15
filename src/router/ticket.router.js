@@ -11,17 +11,8 @@ loginRouter
   .post('/approve',ticketController.approveReq)
   .get('/available',ticketController.getAvailabilities)
   .get('/getDashboard',ticketController.getDashboard)
+  .post('/returnStock',ticketController.returnAvailability)
 
 
-
-
-
-
-
-//   .get('/getFiles',media.listOfvideo)
-  // .post('/upload_profile/:phone_number',media.profil÷e_upload)
-//   .delete('/remove/:filename',media.deleteFile)
 
 module.exports = loginRouter;
-
-//   .patch('/account/role/:searchString/:role', AccountCtrl.role)

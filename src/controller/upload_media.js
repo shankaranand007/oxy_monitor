@@ -1,7 +1,6 @@
 const output = require('../helper/api');
 var fs = require('fs');
 const path = require('path');
-// const loginModel = require('../model/login.model');
 const upload = require('../helper/uploder');
 
 var mongoose = require('mongoose');

@@ -1,14 +1,7 @@
 'use strict';
-// const db = require('../../bin/database');
 var async = require('async');
-// const select = require('../queries/select');
-// const insert = require('../queries/insert');
-// const update = require('../queries/update');
-// const dele = require('../queries/delete');
 const output = require('../helper/api');
-// const Uploader = require('../helper/uploder');
 const loginModel = require('../model/login.model');
-
 
 const util = require("util");
 const multer = require('multer');
@@ -147,9 +140,6 @@ class LoginController {
                     output.ok(req, res, [], "No Data found", 1)
                 }
             });
-
-                // let search_key = req.params.search + '%';
-             
         } catch (ex) { output.serverError(req, res, ex) }
     }
     

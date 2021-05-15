@@ -1,16 +1,11 @@
 'use strict';
-// const db = require('../../bin/database');
 var async = require('async');
-// const select = require('../queries/select');
-// const insert = require('../queries/insert');
-// const update = require('../queries/update');
-// const dele = require('../queries/delete');
 const output = require('../helper/api');
-// const Uploader = require('../helper/uploder');
 const requestModel = require('../model/request.model');
 const stockModel = require('../model/availabilities.model');
 const userModel = require('../model/login.model');
 const volunteersModel = require('../model/volunteers.model');
+const returnModel = require('../model/return.model');
 const moment = require('moment');
 
 
@@ -84,32 +79,19 @@ class TicketController {
         } catch (ex) { output.serverError(req, res, ex) }
     }
 
-    // sendsms(req, res) {
-    //     // console.log("sms")
-    //     // var msg91 = require('msg91-sms');
-    //     const msg912 = require('sendotp');
-    //     const msg91 = new msg912('338590AxCFHU9rFf5f326bf6P1','Hello, Your Verification Code is {{otp}}, please do not share it with anybody');
-    //     let senderid = 'Zuqo';
-    //     let dialcode = '';
-    //     var route = 'Transactional';
-    //     let current_time = new Date();
-    //     // let exp_time = moment(current_time).add(30, 'minutes')
-    //     const otp = Math.floor(1000 + Math.random() * 9000)
-    //     let message = "Hello, Your Verification Code is " + otp;
-    //     var num = '91' + req.params.phoneNumber;
-    //     let number = num.toString();
-    //     console.log(number)
-    //     let mob_no = Number(number)
-    //     msg91.send(number, senderid, otp, function (err,response) {
-    //       console.log(err,response)
-    //       loginModel.findOneAndUpdate({ phoneNumber: { $regex: req.params.phoneNumber, $options: "i" } }, { $set: { 'otp_verify': false, 'phoneNumber': req.params.phoneNumber, 'otp': otp } },{upsert:true})
-    //         .exec((err, data) => {
-    //           if (err) output.serverError(req, res, err);
-    //           else output.ok(req, res, data, "saved", 1)
-    //         })
-    //       // callback(null,response)
-    //     });
-    //   }
+    async returnAvailability(req, res) {
+        try {
+            let returnAv = await returnModel(req.body)
+            returnAv.save(async (err, data) => {
+                if (err) throw err
+                let stock = await availabilitiesModel.findOne()
+                stock.available_oxygen_cylinder = stock.available_oxygen_cylinder - req.body.Number_of_cylinder;
+                stock.available_oxy_meters = (stock.available_oxy_meters > 0) ? stock.available_oxy_meters - req.body.Number_of_monitorKid : 0;
+                stock.save()
+                output.ok(req, res, result, "search name", 0)
+            })
+        } catch (ex) { output.serverError(req, res, ex) }
+    }
 
     async getDashboard(req, res) {
         // var socket = req.app.get('socketIo');
@@ -120,54 +102,63 @@ class TicketController {
                 let convert_date_start = moment.utc().format('YYYY-MM-DD 00:00:00');
                 let convert_date_end = moment.utc().format('YYYY-MM-DD 23:59:59');
                 requestModel.find(
-                    {$and:[
-                      {  create_time: {
-                            // $gte: convert_date_start,
-                            $lte: convert_date_end
-                        }},{
-                            "status" : "delivered"
-                        }
-                    ]
+                    {
+                        $and: [
+                            {
+                                create_time: {
+                                    // $gte: convert_date_start,
+                                    $lte: convert_date_end
+                                }
+                            }, {
+                                "status": "delivered"
+                            }
+                        ]
                     }
                 )
-                    .count()
-                    .exec((err, data) => {
-                        callback(null, data)
+                    .exec(async (err, data) => {
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + b.Number_of_cylinder,"available_oxy_meters": a.Number_of_monitorKid + b.Number_of_monitorKid})):{};
+                        // console.log(ss,"daatadadt")
+
+                        callback(null, ss)
                     })
             },
             totalCount: function (callback) {
-                requestModel.find({status:"delivered"})
-                .count()
-                .exec((err,data)=>{
-                    if(err)callback(err,data)
-                     callback(null, data)
-                })
+                requestModel.find({ status: "delivered" })
+
+                    .exec((err, data) => {
+                        if (err) callback(err, data)
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + b.Number_of_cylinder,"available_oxy_meters": a.Number_of_monitorKid + b.Number_of_monitorKid})):{};
+                        callback(null, ss)
+                    })
             },
             totalReturn: function (callback) {
-                requestModel.find({status:"return"})
-                .count()
-                .exec((err,data)=>{
-                    if(err)callback(err,data)
-                     callback(null, data)
-                })
+                returnModel.find()
+                    .exec((err, data) => {
+                        if (err) callback(err, data)
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.available_oxygen_cylinder + b.available_oxygen_cylinder,"available_oxy_meters": a.available_oxy_meters + b.available_oxy_meters})):{};
+                        callback(null, ss)
+                    })
             },
             todayReturn: function (callback) {
                 let convert_date_start = moment.utc().format('YYYY-MM-DD 00:00:00');
                 let convert_date_end = moment.utc().format('YYYY-MM-DD 23:59:59');
-                requestModel.find(
-                    {$and:[
-                      {  create_time: {
-                            // $gte: convert_date_start,
-                            $lte: convert_date_end
-                        }},{
-                            "status" : "return"
-                        }
-                    ]
+                returnModel.find(
+                    {
+                        $and: [
+                            {
+                                create_time: {
+                                    // $gte: convert_date_start,
+                                    $lte: convert_date_end
+                                }
+                            }, {
+                                "status": "return"
+                            }
+                        ]
                     }
                 )
-                    .count()
                     .exec((err, data) => {
-                        callback(null, data)
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.available_oxygen_cylinder + b.available_oxygen_cylinder,"available_oxy_meters": a.available_oxy_meters + b.available_oxy_meters})):{};
+                        callback(null, ss)
                     })
             },
         }, function (err, results) {
@@ -268,7 +259,8 @@ class TicketController {
     async approveReq(req, res) {
         try {
 
-            let stock = await availabilitiesModel.findOne()
+            let stock = await stockModel.findOne()
+            // console.log(stock,"stock")
             // res.send(stock)
             if (stock.available_oxygen_cylinder > 0) {
                 async.parallel({

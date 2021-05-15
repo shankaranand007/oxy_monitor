@@ -1,12 +1,6 @@
 'use strict';
-// const db = require('../../bin/database');
 var async = require('async');
-// const select = require('../queries/select');
-// const insert = require('../queries/insert');
-// const update = require('../queries/update');
-// const dele = require('../queries/delete');
 const output = require('../helper/api');
-// const Uploader = require('../helper/uploder');
 const volunteersModel = require('../model/volunteers.model');
 
 
