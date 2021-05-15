@@ -16,13 +16,13 @@ var time2;
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './image_storage')
+        cb(null, './storage')
     },
     filename: function (req, file, cb) {
         time = file.fieldname + '-' + Date.now() + '.png';
         cb(null, time)
-        time2 = "http://127.0.0.1/image_storage/" + time
-        console.log("http://127.0.0.1/image_storage/" + time)
+        time2 = "http://127.0.0.1/storage/" + time
+        console.log("http://127.0.0.1/storage/" + time)
 
     }
 });

@@ -15,21 +15,20 @@ const multer = require('multer');
 var time;
 var time2;
 
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './image_storage')
+        cb(null, './storage')
     },
     filename: function (req, file, cb) {
         time = file.fieldname + '-' + Date.now() + '.png';
         cb(null, time)
-        time2 = "http://127.0.0.1/image_storage/" + time
-        console.log("http://127.0.0.1/image_storage/" + time)
+        time2 = "http://127.0.0.1/storage/" + time
+        console.log("http://127.0.0.1/storage/" + time)
 
     }
 });
 
-const upload = multer({ storage: storage }).single('item_img');
+const upload = multer({ storage: storage }).single('img');
 
 
 function uploadAsync(req, res) {
@@ -124,19 +123,31 @@ class LoginController {
     }
     UpdateInfo(req,res){
         try {
+            upload(req, res, (err) => {
+                if (Object.keys(req.body).length) {
+                    (req.file) ? req.body['Aadhaar'] = time2 : "no file";
+                    new Promise((resolve, reject) => {
+
+                        loginModel.findOneAndUpdate({ $and:[{phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{otp_verify:true}]},{$set:req.body})
+                        .exec((err, data) => {
+                            console.log(err,data)
+                          if (err) reject(output.serverError(req, res, err))
+                          else {
+                              if(data){
+                                resolve(output.ok(req, res, data, "saved", 1))
+                              }else{
+                                resolve(output.ok(req, res, {status:false}, "Not able to find your id please regeister you phone number", 0))
+                              }
+                            }
+                        })
+                    })
+                } else {
+                    output.ok(req, res, [], "No Data found", 1)
+                }
+            });
+
                 // let search_key = req.params.search + '%';
-                loginModel.findOneAndUpdate({ $and:[{phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{otp_verify:true}]},{$set:req.body})
-                .exec((err, data) => {
-                    console.log(err,data)
-                  if (err) output.serverError(req, res, err);
-                  else {
-                      if(data){
-                      output.ok(req, res, data, "saved", 1)
-                      }else{
-                      output.ok(req, res, {status:false}, "Not able to find your id please regeister you phone number", 0)
-                      }
-                    }
-                })
+             
         } catch (ex) { output.serverError(req, res, ex) }
     }
     
