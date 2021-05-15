@@ -9,6 +9,9 @@ const output = require('../helper/api');
 // const Uploader = require('../helper/uploder');
 const requestModel = require('../model/request.model');
 const stockModel = require('../model/availabilities.model');
+const userModel = require('../model/login.model');
+const volunteersModel = require('../model/volunteers.model');
+
 
 
 
@@ -164,39 +167,54 @@ class TicketController {
     }
     async approveReq(req,res){
         let stock = await availabilitiesModel.findOne()
-        stock.available_oxygen_cylinder = (stock.available_oxygen_cylinder > 0)? stock.available_oxygen_cylinder- 40 : 0;
-        stock.available_oxy_meters = (stock.available_oxy_meters > 0)? stock.available_oxy_meters - 1 :0;
-        stock.save()
+
 
         res.send(stock)
-        // async.parallel({
-        //     updateStock: async (callback) => {
-        //         db.query((req.params.seprate == 0 ) ? select.get_Catagory_no : select.get_Catagory_yes, (err, result) => {
-        //             if (err) {
-        //                 callback(err, [])
-        //             } else {
-        //                 callback(null, result)
-        //             }
-        //         })
-        //     },
-        //     sendMessage: (callback) => {
-        //         db.query((req.params.seprate == 0 ) ? select.get_Catagory_no : select.get_Catagory_yes, (err, result) => {
-        //             if (err) {
-        //                 callback(err, [])
-        //             } else {
-        //                 callback(null, result)
-        //             }
-        //         })
-        //     },
+        if(stock.available_oxygen_cylinder > 0){
+        async.parallel({
+            updateStock: async (callback) => {
+                stock.available_oxygen_cylinder =  stock.available_oxygen_cylinder - req.body.available_oxygen_cylinder;
+                stock.available_oxy_meters = (stock.available_oxy_meters > 0)? stock.available_oxy_meters - req.body.available_oxy_meters :0;
+                stock.save()
+                callback(null,stock)
+            },
+            reqUpdate: async (callback) => {
+                requestModel.findByIdAndUpdate({_id:req.body_id},{$set:{"status":"delivered"}})
+                .exec((err, data) => {
+                    if (err) callback(err,[])
+                    else {
+                        callback(null,stock)
+                    }
+                })
+
+            },     
+            updateStock: async (callback) => {
+                stock.available_oxygen_cylinder =  stock.available_oxygen_cylinder- 40;
+                stock.available_oxy_meters = (stock.available_oxy_meters > 0)? stock.available_oxy_meters - 1 :0;
+                stock.save()
+                callback(null,stock)
+            },
+            updateVolunteer: (callback) => {
+               userModel.findOne({phoneNumber:req.body.phoneNumber})
+               .exec((err, data) => {
+                if (err) callback(err,[])
+                else {
+                    callback(null,stock)
+                }
+            })
+            },
         
-        // },
-        //     (err, result) => {
-        //         if (err) output.invalid(req, res, err)
-        //         // let result = []
-        //         output.ok(req, res, result, "catagory list", 0)
-        //     }
-        // )
+        },
+            (err, result) => {
+                if (err) output.invalid(req, res, err)
+                // let result = []
+                output.ok(req, res, result, "catagory list", 0)
+            }
+        )
+    }else{
+        output.ok(req, res, { status: false }, "No stock", 0)
     }
+}
    
 }
 module.exports = new TicketController();
