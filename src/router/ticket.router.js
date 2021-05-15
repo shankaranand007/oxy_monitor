@@ -1,11 +1,17 @@
 'use strict';
 
 const express = require('express');
-const login = require('../controller/user');
+const ticketController = require('../controller/ticket');
 const loginRouter = express.Router();
 
 loginRouter
-  .get('/create/:phoneNumber',login.sendsms)
+  .get('/create/:phoneNumber',ticketController.newReq)
+  .post('/addStock',ticketController.addStock)
+  .get('/',ticketController.listOfReq)
+  .post('/approve',ticketController.approveReq)
+
+
+
 
 
 //   .get('/getFiles',media.listOfvideo)

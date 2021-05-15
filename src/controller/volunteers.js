@@ -139,6 +139,24 @@ class VolunteersController {
                 })
         } catch (ex) { output.serverError(req, res, ex) }
     }
+
+    list(req,res){
+        try {
+                // let search_key = req.params.search + '%';
+                volunteersModel.find()
+                .exec((err, data) => {
+                    console.log(err,data)
+                  if (err) output.serverError(req, res, err);
+                  else {
+                      if(data){
+                      output.ok(req, res, data, "saved", 1)
+                      }else{
+                      output.ok(req, res, {status:false}, "", 0)
+                      }
+                    }
+                })
+        } catch (ex) { output.serverError(req, res, ex) }
+    }
     
     
 }

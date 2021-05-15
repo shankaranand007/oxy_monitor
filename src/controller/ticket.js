@@ -7,13 +7,14 @@ var async = require('async');
 // const dele = require('../queries/delete');
 const output = require('../helper/api');
 // const Uploader = require('../helper/uploder');
-const volunteersModel = require('../model/volunteers.model');
+const requestModel = require('../model/request.model');
 const stockModel = require('../model/availabilities.model');
 
 
 
 const util = require("util");
 const multer = require('multer');
+const availabilitiesModel = require('../model/availabilities.model');
 var time;
 var time2;
 
@@ -54,7 +55,7 @@ class TicketController {
         return "dt"
     }
 
-     multer_testing(req, res) {
+    multer_testing(req, res) {
         // try{
         // output.ok(req, res, "result2", "catagory added", 0)
         upload(req, res, function (err) { console.log(req.body); output.ok(req, res, time2, "catagory added", 0) })
@@ -105,60 +106,97 @@ class TicketController {
     //       // callback(null,response)
     //     });
     //   }
-    addStock(req,res){
+    addStock(req, res) {
+        try {
+            if (Object.keys(req.body).length) {
+                stockModel.updateMany({}, { $inc: { "available_oxygen_cylinder": req.body.cylinder, "available_oxy_meters": req.body.meter } }, { upsert: true })
+                    .exec((err, data) => {
+                        console.log(err, data)
+                        if (err) output.serverError(req, res, err);
+                        else {
+                            if (data) {
+                                output.ok(req, res, { status: true }, "saved", 1)
+                            } else {
+                                output.ok(req, res, { status: false }, "saved", 0)
+                            }
+                        }
+                    })
+            }else{
+                throw "Invalid Message"
+            }
+        } catch (ex) { output.serverError(req, res, ex) }
+    }
+    newReq(req, res) {
         try {
             // console.log( req.params.phoneNumber,"sljjfksjdbfjk")
-                // let search_key = req.params.search + '%';
-                loginModel.findOneAndUpdate({ },{$set:{'otp_verify': true}})
+            // let search_key = req.params.search + '%';
+            loginModel.findOneAndUpdate({ $and: [{ phoneNumber: { $regex: req.params.phoneNumber, $options: "i" } }, { otp: req.params.otp }] }, { $set: { 'otp_verify': true } })
                 .exec((err, data) => {
-                    console.log(err,data)
-                  if (err) output.serverError(req, res, err);
-                  else {
-                      if(data){
-                      output.ok(req, res, {status:true}, "saved", 1)
-                      }else{
-                      output.ok(req, res, {status:false}, "saved", 0)
-                      }
+                    console.log(err, data)
+                    if (err) output.serverError(req, res, err);
+                    else {
+                        if (data) {
+                            output.ok(req, res, { status: true }, "saved", 1)
+                        } else {
+                            output.ok(req, res, { status: false }, "saved", 0)
+                        }
                     }
                 })
         } catch (ex) { output.serverError(req, res, ex) }
     }
-      newReq(req,res){
+
+    listOfReq(req, res) {
         try {
             // console.log( req.params.phoneNumber,"sljjfksjdbfjk")
-                // let search_key = req.params.search + '%';
-                loginModel.findOneAndUpdate({ $and:[{phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{otp:req.params.otp}]},{$set:{'otp_verify': true}})
+            // let search_key = req.params.search + '%';
+            requestModel.find({})
                 .exec((err, data) => {
-                    console.log(err,data)
-                  if (err) output.serverError(req, res, err);
-                  else {
-                      if(data){
-                      output.ok(req, res, {status:true}, "saved", 1)
-                      }else{
-                      output.ok(req, res, {status:false}, "saved", 0)
-                      }
+                    if (err) output.serverError(req, res, err);
+                    else {
+                        if (data) {
+                            output.ok(req, res, { status: true }, "saved", 1)
+                        } else {
+                            output.ok(req, res, { status: false }, "saved", 0)
+                        }
                     }
                 })
         } catch (ex) { output.serverError(req, res, ex) }
     }
-    // UpdateInfo(req,res){
-    //     try {
-    //             // let search_key = req.params.search + '%';
-    //             volunteers.findOneAndUpdate({phoneNumber: { $regex: req.params.phoneNumber, $options: "i" }},{$set:req.body},{upsert:true})
-    //             .exec((err, data) => {
-    //                 console.log(err,data)
-    //               if (err) output.serverError(req, res, err);
-    //               else {
-    //                   if(data){
-    //                   output.ok(req, res, data, "saved", 1)
-    //                   }else{
-    //                   output.ok(req, res, {status:false}, "Not able to find your id please regeister you phone number", 0)
-    //                   }
-    //                 }
-    //             })
-    //     } catch (ex) { output.serverError(req, res, ex) }
-    // }
-    
-    
+    async approveReq(req,res){
+        let stock = await availabilitiesModel.findOne()
+        stock.available_oxygen_cylinder = (stock.available_oxygen_cylinder > 0)? stock.available_oxygen_cylinder- 40 : 0;
+        stock.available_oxy_meters = (stock.available_oxy_meters > 0)? stock.available_oxy_meters - 1 :0;
+        stock.save()
+
+        res.send(stock)
+        // async.parallel({
+        //     updateStock: async (callback) => {
+        //         db.query((req.params.seprate == 0 ) ? select.get_Catagory_no : select.get_Catagory_yes, (err, result) => {
+        //             if (err) {
+        //                 callback(err, [])
+        //             } else {
+        //                 callback(null, result)
+        //             }
+        //         })
+        //     },
+        //     sendMessage: (callback) => {
+        //         db.query((req.params.seprate == 0 ) ? select.get_Catagory_no : select.get_Catagory_yes, (err, result) => {
+        //             if (err) {
+        //                 callback(err, [])
+        //             } else {
+        //                 callback(null, result)
+        //             }
+        //         })
+        //     },
+        
+        // },
+        //     (err, result) => {
+        //         if (err) output.invalid(req, res, err)
+        //         // let result = []
+        //         output.ok(req, res, result, "catagory list", 0)
+        //     }
+        // )
+    }
+   
 }
 module.exports = new TicketController();
