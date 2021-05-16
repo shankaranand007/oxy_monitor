@@ -14,13 +14,9 @@ var users = [];
     console.log('A user connected');
 
     socket.on('join', function (user){
-        console.log("lilsdlsklsd")
-       socket.username = user.username;
-
-       users.push(socket.username);
 
        io.emit('user joined', { 'username': "user.username, users:users" });
-
+       io.emit('availableStock', {});
     });
 
 

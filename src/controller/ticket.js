@@ -85,7 +85,8 @@ class TicketController {
             returnAv.save(async (err, data) => {
                 if (err) throw err
                 await stockModel.updateMany({}, { $inc: { "available_oxygen_cylinder": req.body.available_oxygen_cylinder, "available_oxy_meters": req.body.available_oxy_meters } }, { upsert: true })
-
+                var socket = req.app.get('socketIo');
+               socket.emit('availableStock', data);
                 output.ok(req, res, data, "search name", 0)
             })
         } catch (ex) { output.serverError(req, res, ex) }
@@ -178,6 +179,8 @@ class TicketController {
                         if (err) output.serverError(req, res, err);
                         else {
                             if (data) {
+                                var socket = req.app.get('socketIo');
+                                socket.emit('availableStock', data);
                                 output.ok(req, res, { status: true }, "saved", 1)
                             } else {
                                 output.ok(req, res, { status: false }, "saved", 0)
@@ -260,6 +263,7 @@ class TicketController {
                         stock.available_oxygen_cylinder = stock.available_oxygen_cylinder - req.body.Number_of_cylinder;
                         stock.available_oxy_meters = (stock.available_oxy_meters > 0) ? stock.available_oxy_meters - req.body.Number_of_monitorKid : 0;
                         stock.save()
+             
                         callback(null, stock)
                     },
                     reqUpdate: async (callback) => {
@@ -292,6 +296,8 @@ class TicketController {
                     (err, result) => {
                         // if (err) output.invalid(req, res, err)
                         // let result = []
+                        var socket = req.app.get('socketIo');
+                        socket.emit('availableStock', stock);
                         output.ok(req, res, result, "catagory list", 0)
                     }
                 )
