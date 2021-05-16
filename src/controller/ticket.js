@@ -114,7 +114,7 @@ class TicketController {
                     }
                 )
                     .exec(async (err, data) => {
-                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + b.Number_of_cylinder,"available_oxy_meters": a.Number_of_monitorKid + b.Number_of_monitorKid})):{};
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + b.Number_of_cylinder,"available_oxy_meters": a.available_oxy_meters + b.Number_of_monitorKid})):{};
                         // console.log(ss,"daatadadt")
 
                         callback(null, ss)
@@ -125,7 +125,7 @@ class TicketController {
 
                     .exec((err, data) => {
                         if (err) callback(err, data)
-                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + b.Number_of_cylinder,"available_oxy_meters": a.Number_of_monitorKid + b.Number_of_monitorKid})):{};
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + b.Number_of_cylinder,"available_oxy_meters": a.available_oxy_meters + b.Number_of_monitorKid})):{};
                         callback(null, ss)
                     })
             },
@@ -133,7 +133,7 @@ class TicketController {
                 returnModel.find({})
                     .exec((err, data) => {
                         if (err) callback(err, data)
-                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.available_oxygen_cylinder + b.available_oxygen_cylinder,"available_oxy_meters": a.available_oxy_meters + b.available_oxy_meters})):{};
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + (b.available_oxygen_cylinder)?parseInt(b.available_oxygen_cylinder):0,"available_oxy_meters": a.available_oxy_meters + (b.available_oxy_meters)?parseInt(b.available_oxy_meters):0})):{};
                         callback(null, ss)
                     })
             },
@@ -149,7 +149,7 @@ class TicketController {
                 },)
 
                     .exec((err, data) => {
-                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.available_oxygen_cylinder + b.available_oxygen_cylinder,"available_oxy_meters": a.available_oxy_meters + b.available_oxy_meters})):{};
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + (b.available_oxygen_cylinder)?parseInt(b.available_oxygen_cylinder):0,"available_oxy_meters": a.available_oxy_meters + b.available_oxy_meters})):{};
                         callback(null, ss)
                     })
             },
