@@ -115,7 +115,7 @@ class TicketController {
                     }
                 )
                     .exec(async (err, data) => {
-                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + (b.Number_of_cylinder)?parseInt(b.Number_of_cylinder):0,"available_oxy_meters": a.Number_of_monitorKid + (b.Number_of_monitorKid)?parseInt(b.Number_of_monitorKid):0})):{};
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + parseInt(b.Number_of_cylinder),"available_oxy_meters": a.Number_of_monitorKid + (b.Number_of_monitorKid)?parseInt(b.Number_of_monitorKid):0})):{};
                         // console.log(ss,"daatadadt")
 
                         callback(null, ss)
@@ -126,7 +126,7 @@ class TicketController {
 
                     .exec((err, data) => {
                         if (err) callback(err, data)
-                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + (b.Number_of_cylinder)?parseInt(b.Number_of_cylinder):0,"available_oxy_meters": a.Number_of_monitorKid + (b.Number_of_monitorKid)?parseInt(b.Number_of_monitorKid):0})):{};
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + parseInt(b.Number_of_cylinder),"available_oxy_meters": a.Number_of_monitorKid + (b.Number_of_monitorKid)?parseInt(b.Number_of_monitorKid):0})):{};
                         callback(null, ss)
                     })
             },
