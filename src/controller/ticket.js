@@ -135,7 +135,7 @@ class TicketController {
                 returnModel.find({})
                     .exec((err, data) => {
                         if (err) callback(err, data)
-                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.available_oxygen_cylinder + b.available_oxygen_cylinder,"available_oxy_meters": a.available_oxy_meters + parseInt(b.available_oxy_meters)})):{};
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"available_oxygen_cylinder": a.available_oxygen_cylinder + b.available_oxygen_cylinder,"available_oxy_meters": a.available_oxy_meters + parseInt(b.available_oxy_meters)})):{};
                         callback(null, ss)
                     })
             },
@@ -151,7 +151,7 @@ class TicketController {
                 },)
 
                     .exec((err, data) => {
-                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + b.available_oxygen_cylinder,"available_oxy_meters": a.available_oxy_meters +parseInt(b.available_oxy_meters)})):{};
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"available_oxygen_cylinder": a.available_oxygen_cylinder + b.available_oxygen_cylinder,"available_oxy_meters": a.available_oxy_meters +parseInt(b.available_oxy_meters)})):{};
                        
                         callback(null, ss)
                     })
