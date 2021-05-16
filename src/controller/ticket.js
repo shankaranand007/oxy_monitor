@@ -140,20 +140,14 @@ class TicketController {
             todayReturn: function (callback) {
                 let convert_date_start = moment.utc().format('YYYY-MM-DD 00:00:00');
                 let convert_date_end = moment.utc().format('YYYY-MM-DD 23:59:59');
-                returnModel.find(
-                    {
-                        $and: [
-                            {
-                                create_time: {
-                                    // $gte: convert_date_start,
-                                    $lte: convert_date_end
-                                }
-                            }, {
-                                "status": "return"
-                            }
-                        ]
+
+                returnModel.find({
+                    create_time: {
+                        // $gte: convert_date_start,
+                        $lte: convert_date_end
                     }
-                )
+                },)
+
                     .exec((err, data) => {
                         let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.available_oxygen_cylinder + b.available_oxygen_cylinder,"available_oxy_meters": a.available_oxy_meters + b.available_oxy_meters})):{};
                         callback(null, ss)
