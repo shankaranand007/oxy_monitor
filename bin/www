@@ -24,7 +24,11 @@ var server = http.createServer(app);
 
 var socketio = require('../src/helper/socketio');
 var io = socketio.io;
-io.attach(server);
+
+io.attach(server,options={
+  cors:true,
+  origins:["http://164.52.210.197:4000"],
+ });
 // io.on('connection', client => {
 //   // console.log(client)
 //   client.on('event', data => {console.log(data,"sokerererer")});
