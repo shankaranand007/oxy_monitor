@@ -84,10 +84,8 @@ class TicketController {
             let returnAv = await returnModel(req.body)
             returnAv.save(async (err, data) => {
                 if (err) throw err
-                let stock = await availabilitiesModel.findOne()
-                stock.available_oxygen_cylinder = stock.available_oxygen_cylinder - req.body.Number_of_cylinder;
-                stock.available_oxy_meters = (stock.available_oxy_meters > 0) ? stock.available_oxy_meters - req.body.Number_of_monitorKid : 0;
-                stock.save()
+                await stockModel.updateMany({}, { $inc: { "available_oxygen_cylinder": req.body.available_oxygen_cylinder, "available_oxy_meters": req.body.available_oxy_meters } }, { upsert: true })
+
                 output.ok(req, res, data, "search name", 0)
             })
         } catch (ex) { output.serverError(req, res, ex) }
