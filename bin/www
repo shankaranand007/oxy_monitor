@@ -35,7 +35,7 @@ io.attach(server);
  */
 
 server.listen(port);
-// app.set('socketIo', io);
+app.set('socketIo', io);
 // io.on('event',data=>{console.log("adhsgasdjas")})
 
 server.on('error', onError);

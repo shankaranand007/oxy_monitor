@@ -95,7 +95,7 @@ class TicketController {
 
     async getDashboard(req, res) {
         // var socket = req.app.get('socketIo');
-        // socket.emit('event', 'world');
+        // socket.emit('user joined', 'world');
 
         async.parallel({
             todayCount: function (callback) {
