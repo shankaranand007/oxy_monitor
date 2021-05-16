@@ -27,7 +27,7 @@ var io = socketio.io;
 
 io.attach(server,{
   cors: {
-    origin: ["*"],
+    origin: ["http://164.52.210.197:4000","http://localhost:4200"],
     allowedHeaders: ["my-custom-header"],
     methods: ["GET", "POST"],
     credentials: true
