@@ -19,11 +19,21 @@ var users = [];
 
        users.push(socket.username);
 
-       io.emit('user joined', { 'username': user.username, users:users });
+       io.emit('user joined', { 'username': "user.username, users:users" });
 
     });
 
-         
+
+    socket.on('disconnect', function(){
+
+        console.log('user disconnected');
+
+        // users.splice(users.indexOf(socket.username), 1);
+  
+      io.emit('user disconnected',"");
+
+    });
+     
  });
  
 module.exports = socketio;
