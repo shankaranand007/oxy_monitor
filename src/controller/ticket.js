@@ -130,7 +130,7 @@ class TicketController {
                     })
             },
             totalReturn: function (callback) {
-                returnModel.find()
+                returnModel.find({})
                     .exec((err, data) => {
                         if (err) callback(err, data)
                         let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.available_oxygen_cylinder + b.available_oxygen_cylinder,"available_oxy_meters": a.available_oxy_meters + b.available_oxy_meters})):{};
