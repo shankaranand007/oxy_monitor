@@ -64,8 +64,8 @@ app.use(cors());
 require('./src/router/index')(app)
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'html');
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -73,12 +73,28 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(express.static(path.join(__dirname, 'public/build')));
+app.use(express.static(path.join(__dirname, 'public/dev')));
+
+
+function getRoot(request, response) {
+  response.sendFile(path.resolve('./public/build/index.html'));
+}
+
+function getUndefined(request, response) {
+  response.sendFile(path.resolve('./public/dev/index.html'));
+}
+
+
+
+app.get('/', getRoot);
 
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
 });
+
 
 // error handler
 app.use(function(err, req, res, next) {

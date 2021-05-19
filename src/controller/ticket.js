@@ -173,40 +173,66 @@ class TicketController {
     }
 
     getReports(req, res) {
-      requestModel.aggregate([
-        {
-          $project: {
-            item: 1,
-            open: {  // Set to 1 if value < 10
-              $cond: [ { $eq: ["$status", 'open' ] }, 1, 0]
+        async.parallel({
+            all: function (callback) {
+                requestModel.find({ })
+
+                    .exec(async (err, data) => {
+                        
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + parseInt(b.Number_of_cylinder),"available_oxy_meters": a.Number_of_monitorKid + (b.Number_of_monitorKid)?parseInt(b.Number_of_monitorKid):0})):{};
+                        // console.log(ss,"daatadadt")
+
+                        callback(null, ss)
+                    })
             },
-            rejected: {  // Set to 1 if value < 10
-              $cond: [ { $eq: ["$status", 'rejected' ] }, 1, 0]
+            open: function (callback) {
+                requestModel.find({ status: "open" })
+
+                    .exec(async (err, data) => {
+                        
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + parseInt(b.Number_of_cylinder),"available_oxy_meters": a.Number_of_monitorKid + (b.Number_of_monitorKid)?parseInt(b.Number_of_monitorKid):0})):{};
+                        // console.log(ss,"daatadadt")
+
+                        callback(null, ss)
+                    })
             },
-            delivered: {
-              $cond: [ { $eq: ["$status", 'delivered' ] }, 1, 0]
+            rejected: function (callback) {
+                requestModel.find({ status: "rejected" })
+
+                    .exec((err, data) => {
+                        if (err) callback(err, data)
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + parseInt(b.Number_of_cylinder),"available_oxy_meters": a.Number_of_monitorKid + (b.Number_of_monitorKid)?parseInt(b.Number_of_monitorKid):0})):{};
+
+                        callback(null, ss)
+                    })
             },
-            closed: {
-              $cond: [ { $eq: ["$status", 'closed' ] }, 1, 0]
+            delivered: function (callback) {
+                requestModel.find({ status: "delivered" })
+
+                    .exec((err, data) => {
+                        if (err) callback(err, data)
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + parseInt(b.Number_of_cylinder),"available_oxy_meters": a.Number_of_monitorKid + (b.Number_of_monitorKid)?parseInt(b.Number_of_monitorKid):0})):{};
+                        
+                        callback(null, ss)
+                    })
             },
-          }
-        },
-        {
-          $group: {
-            _id: 1,
-            open: { $sum: "$open" },
-            rejected: { $sum: "$rejected" },
-            delivered: { $sum: '$delivered'},
-            closed: {$sum: '$closed'},
-            overall: {$sum: 1}
-          }
-        }
-      ]).exec((err, docs) => {
-        if (err) output.serverError(req, res, err);
-        else {
-            output.ok(req, res, docs, "data", 1)
-        }
-      })
+            closed: function (callback) {
+                requestModel.find({ status: "closed" })
+               
+                .exec((err, data) => {
+                    let ss = {};
+                    if(data && data[0]) {
+                        let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + parseInt(b.Number_of_cylinder),"available_oxy_meters": a.Number_of_monitorKid + (b.Number_of_monitorKid)?parseInt(b.Number_of_monitorKid):0})):{};
+
+                    }
+                    callback(null, ss)
+                })
+            },
+        }, function (err, results) {
+            console.log(results,"results")
+            if (err) { output.serverError(req, res, err) } else { output.ok(req, res, results, "saved", 1) }
+        });
+      
     }
 
     getAvailabilities(req, res) {
