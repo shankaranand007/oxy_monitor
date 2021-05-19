@@ -179,7 +179,7 @@ var __decorate = (undefined && undefined.__decorate) || function (decorators, ta
 
 
 
-var config = { url: 'http://localhost:4000', options: {} };
+var config = { url: 'http://164.52.210.197:4000', options: {} };
 var AppModule = /** @class */ (function () {
     function AppModule() {
     }
@@ -1158,7 +1158,7 @@ __webpack_require__.r(__webpack_exports__);
 // The list of file replacements can be found in `angular.json`.
 var environment = {
     production: false,
-    baseUrl: "http://localhost:4000"
+    baseUrl: "http://164.52.210.197:4000"
 };
 /*
  * For easier debugging in development mode, you can import the following file
