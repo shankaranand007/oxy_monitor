@@ -127,7 +127,7 @@ class TicketController {
                     .exec((err, data) => {
                         if (err) callback(err, data)
                         let ss =  (data.length) ? data.reduce((a, b) => ({"Number_of_cylinder": a.Number_of_cylinder + parseInt(b.Number_of_cylinder),"available_oxy_meters": a.Number_of_monitorKid + (b.Number_of_monitorKid)?parseInt(b.Number_of_monitorKid):0})):{};
-                      
+
                         callback(null, ss)
                     })
             },
@@ -140,27 +140,75 @@ class TicketController {
                     })
             },
             todayReturn: function (callback) {
-                let convert_date_start = moment.utc().format('YYYY-MM-DD 00:00:00');
-                let convert_date_end = moment.utc().format('YYYY-MM-DD 23:59:59');
+                let convert_date_start = new Date(moment().format('YYYY-MM-DD 00:00:00'));
+                let convert_date_end = new Date(moment().format('YYYY-MM-DD 23:59:59'));
 
-                returnModel.find({
-                    create_time: {
-                        // $gte: convert_date_start,
-                        $lte: convert_date_end
+                requestModel.aggregate([
+                    {
+                        $match: {
+                            $and: [ { act_return_date: {$gte:convert_date_start} }, { act_return_date: {$lte:convert_date_end} }]
+                        }
+                    },
+                    {
+                        $group: {
+                            _id:1,
+                            oxygen_concentrator: {$sum: '$Number_of_cylinder'},
+                            pulse_oxymeter: {$sum: '$Number_of_monitorKid'}
+                        }
                     }
-                },)
+                ])
 
-                    .exec((err, data) => {
-                        let ss =  (data.length) ? data.reduce((a, b) => ({"available_oxygen_cylinder": a.available_oxygen_cylinder + b.available_oxygen_cylinder,"available_oxy_meters": a.available_oxy_meters +parseInt(b.available_oxy_meters)})):{};
-                       
-                        callback(null, ss)
-                    })
+                .exec((err, data) => {
+                    let ss = {};
+                    if(data && data[0]) {
+                        ss =  { "available_oxygen_cylinder": data[0].oxygen_concentrator ,"available_oxy_meters": data[0].pulse_oxymeter };
+                    }
+                    callback(null, ss)
+                })
             },
         }, function (err, results) {
             if (err) { output.serverError(req, res, err) } else { output.ok(req, res, results, "saved", 1) }
         });
 
     }
+
+    getReports(req, res) {
+      requestModel.aggregate([
+        {
+          $project: {
+            item: 1,
+            open: {  // Set to 1 if value < 10
+              $cond: [ { $eq: ["$status", 'open' ] }, 1, 0]
+            },
+            rejected: {  // Set to 1 if value < 10
+              $cond: [ { $eq: ["$status", 'rejected' ] }, 1, 0]
+            },
+            delivered: {
+              $cond: [ { $eq: ["$status", 'delivered' ] }, 1, 0]
+            },
+            closed: {
+              $cond: [ { $eq: ["$status", 'closed' ] }, 1, 0]
+            },
+          }
+        },
+        {
+          $group: {
+            _id: 1,
+            open: { $sum: "$open" },
+            rejected: { $sum: "$rejected" },
+            delivered: { $sum: '$delivered'},
+            closed: {$sum: '$closed'},
+            overall: {$sum: 1}
+          }
+        }
+      ]).exec((err, docs) => {
+        if (err) output.serverError(req, res, err);
+        else {
+            output.ok(req, res, docs, "data", 1)
+        }
+      })
+    }
+
     getAvailabilities(req, res) {
         stockModel.findOne({})
             .exec((err, data) => {
@@ -172,10 +220,10 @@ class TicketController {
             })
     }
 
-    addStock(req, res) {
+    saveStock(req, res) {
         try {
             if (Object.keys(req.body).length) {
-                stockModel.updateMany({}, { $inc: { "available_oxygen_cylinder": req.body.cylinder, "available_oxy_meters": req.body.meter } }, { upsert: true })
+                stockModel.updateMany({}, { $set: { "available_oxygen_cylinder": req.body.cylinder, "available_oxy_meters": req.body.meter } }, { upsert: true })
                     .exec((err, data) => {
                         console.log(err, data)
                         if (err) output.serverError(req, res, err);
@@ -211,7 +259,7 @@ class TicketController {
                                 else {
                                     // if (data) {
                                     output.ok(req, res, data, "saved", 1)
-                                    // } 
+                                    // }
                                 }
                             })
                         } else {
@@ -255,7 +303,6 @@ class TicketController {
 
     async approveReq(req, res) {
         try {
-
             let stock = await stockModel.findOne()
             // console.log(stock,"stock")
             // res.send(stock)
@@ -265,12 +312,13 @@ class TicketController {
                         stock.available_oxygen_cylinder = stock.available_oxygen_cylinder - req.body.Number_of_cylinder;
                         stock.available_oxy_meters = (stock.available_oxy_meters > 0) ? stock.available_oxy_meters - req.body.Number_of_monitorKid : 0;
                         stock.save()
-             
+
                         callback(null, stock)
                     },
                     reqUpdate: async (callback) => {
-                        let data = await requestModel.findByIdAndUpdate({ _id: req.body._id }, { $set: { "status": "delivered" } })
+                        var today = new Date();
 
+                        let data = await requestModel.findByIdAndUpdate({ _id: req.body._id }, { $set: { "status": "delivered", approve_reject_date: new Date(), exp_return_date: today.setDate(today.getDate() + 7)} })
                         callback(null, data)
 
 
@@ -306,6 +354,58 @@ class TicketController {
             } else {
                 throw "NO stock"
             }
+        } catch (ex) { output.serverError(req, res, ex) }
+    }
+
+    async rejectReq(req, res) {
+        try {
+            let stock = await stockModel.findOne()
+            async.parallel({
+                reqUpdate: async (callback) => {
+                    let data = await requestModel.findByIdAndUpdate({ _id: req.body._id }, { $set: { "status": "rejected", reason: req.body.reason, approve_reject_date: new Date() } })
+                    console.log(data);
+                    callback(null, data)
+
+
+                },
+                updateUser: async (callback) => {
+                    // send msg to user
+                    callback(null, stock)
+                }
+            },
+                (err, result) => {
+                    // if (err) output.invalid(req, res, err)
+                    // let result = []
+                    var socket = req.app.get('socketIo');
+                    socket.emit('availableStock', stock);
+                    output.ok(req, res, result, "rejected booking", 0)
+                }
+            )
+        } catch (ex) { output.serverError(req, res, ex) }
+    }
+
+    async closeReq(req, res) {
+        try {
+            let stock = await stockModel.findOne()
+            async.parallel({
+                reqUpdate: async (callback) => {
+                    let data = await requestModel.findByIdAndUpdate({ _id: req.body._id }, { $set: { "status": "closed", act_return_date: new Date() } })
+                    callback(null, data)
+
+                },
+                updateUser: async (callback) => {
+                    // send msg to user
+                    callback(null, stock)
+                }
+            },
+                (err, result) => {
+                    // if (err) output.invalid(req, res, err)
+                    // let result = []
+                    var socket = req.app.get('socketIo');
+                    socket.emit('availableStock', stock);
+                    output.ok(req, res, result, "closed booking", 0)
+                }
+            )
         } catch (ex) { output.serverError(req, res, ex) }
     }
 

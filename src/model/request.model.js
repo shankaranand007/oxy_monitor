@@ -1,4 +1,4 @@
-const mongoose = require('mongoose'); 
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const config = require('../../config.json');
@@ -10,6 +10,10 @@ let request = new Schema({
     Number_of_cylinder:Number,
     Number_of_monitorKid:Number,
     status:{type:String,default:"open"},
+    reason:{type:String},
+    exp_return_date:{type:Date},
+    approve_reject_date:{type:Date},
+    act_return_date:{type:Date},
     create_time:{type:Date,default:Date.now}
 },{strict:false});
 
