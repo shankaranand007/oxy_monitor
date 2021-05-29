@@ -22,7 +22,9 @@ const cors = require('cors');
 
 app.use(cors());
 
-
+app.get('/',(req,res)=>{
+  res.send("running")
+})
 
 //index router
 require('./src/router/index')(app)
