@@ -1,35 +1,39 @@
 
 var socket_io = require('socket.io');
 
-var io       = socket_io();
+var io = socket_io();
 
 var socketio = {};
 
-socketio.io  = io;
+socketio.io = io;
 
 var users = [];
 
- io.on('connection', function(socket){
-    
-    console.log('A user connected');
+io.on('connection', function (socket) {
 
-    socket.on('join', function (user){
+   console.log('A user connected');
 
-       io.emit('user joined', { 'username': "user.username, users:users" });
-       io.emit('availableStock', {});
-    });
+   socket.on('join', function (user) {
 
+      io.emit('user joined', { 'username': "user.username, users:users" });
+      io.emit('availableStock', {});
+   });
 
-    socket.on('disconnect', function(){
+   socket.on("new connection called", (data) => {
+      console.log(data, "alsdjnasjdn")
+      io.emit('request connection', data)
+   })
 
-        console.log('user disconnected');
+   socket.on('disconnect', function () {
 
-        // users.splice(users.indexOf(socket.username), 1);
-  
-      io.emit('user disconnected',"");
+      console.log('user disconnected');
 
-    });
-     
- });
- 
+      // users.splice(users.indexOf(socket.username), 1);
+
+      io.emit('user disconnected', "");
+
+   });
+
+});
+
 module.exports = socketio;

@@ -17,48 +17,12 @@ app.use(bodyParser.json());
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// app.use((req,res,next)=>{
-//   let url = req.originalUrl.split('/')
-//   let len_url = url.length;
-//   let token = req.headers.authorization;
-//   let third_params 
-//   let second_params
-//   let last
-//   if(len_url >= 3){
-//     third_params = url[len_url-3]
-//     second_params = url[len_url-2]
-//     last = url[len_url-4]
 
-//   }
-//   console.log(url[len_url-1],'sdf',url)
-//   if(second_params == 'otp_verification' || third_params == 'msg92' || last == 'mail' || url[len_url-1] == 'apiSecurity' || url[len_url-1] == 'login' || url[len_url-1] == 'count' || url[len_url-1] == 'data' || url[len_url-1] == '' || url[len_url-1] == 'product'|| url[len_url-1] == 'all'){
-//     next()
-//   }else{
-//     jwt.verify(token, 'chewy@1#4', function(err, decoded) {
-//       console.log(decoded,err,'err') 
-//       if(err){
-//         res.send('Invalid  token')
-//       }else{
-//           next()
-//       }
-//     });
-//   } 
-// })
 const cors = require('cors');
 
 app.use(cors());
 
-// app.use((req,res,next)=>{
-//   let token = req.headers.authorization;
-//       jwt.verify(token, 'chewy@1#4', function(err, decoded) {
-//       console.log(decoded,err,'err') 
-//       if(err){
-//         res.send('Invalid  token')
-//       }else{
-//           next()
-//       }
-//     });
-// })
+
 
 //index router
 require('./src/router/index')(app)
